@@ -27,21 +27,24 @@ of implementation and the other information stored in the database.
 
 As a result, each node's database will have the following tables:
 
-#### sensor
+SQLite does not support booleans. As such, they aer represented integers where
+0 is false and 1 is true.
+
+#### sensor\_data
 | Timestamp (key)          | Value |
 | :----------------------: | :---: |
 | int, seconds since epoch | int   |
 
 
 #### node\_data
-| serial num (key) | ip\_address | is\_sensor | is\_device | is\_master | is\_broker | is\_up | last\_up                 |
+| serial (key) | ip\_address | is\_sensor | is\_device | is\_master | is\_broker | is\_up | last\_up                 |
 | :-------------:  | :---------: | :--------: | :--------: | :--------: | :--------: | :----: | :----------------------: |
-| int              | string      | bool       | bool       | bool       | bool       | bool   | int, seconds since epoch |
+| int              | text        | bool       | bool       | bool       | bool       | bool   | int, seconds since epoch |
 
 #### transactions
 | source\_serial | operator | value | dest\_serial | action |
 | :------------: | :------: | :---: | :----------: | :----: |
-| int            | string   | int   | int          | string |
+| int            | text     | int   | int          | text   |
 
 Note: In the transactions table, operator is one of {'<', '<=', '==', '>', '>=}
 <br>E.g. "if source < 5 then dest action"
