@@ -68,12 +68,17 @@ Note: In the transactions table, operator is one of {'<', '<=', '==', '>', '>=}
 <br>E.g. "if source < 5 then dest action"
 <br>In this case, if the sensor data published by the source node is <5, the dest node will do "action"
 
-## Broker Topics
+## MQTT
 The interaction layer uses an MQTT broker to manage communications. You can find
 out more about mqtt (and in particular mqtt topics) here (TODO). In particular,
 the broker used is (TODO) and the backend python library used as a client is
 (TODO).
 
+In addition, you have to make sure that the device running the broker (most
+likely an AWS instance) has port 1883 open, as that is the one that the broker
+listens on.
+
+#### Broker Topics
 The topics used in this system are broken up below by each separate subsystem,
 and whether that subsystem is publishing or subscribing to the topic.
 - webapp
@@ -93,3 +98,7 @@ and whether that subsystem is publishing or subscribing to the topic.
         - heartbeats
         - config_changes - {node_serial_num}_data_req
         - {node_serial_num}_data_stream (for transactions)
+
+
+Citations:
+https://thispointer.com/python-check-if-a-process-is-running-by-name-and-find-its-process-id-pid/
