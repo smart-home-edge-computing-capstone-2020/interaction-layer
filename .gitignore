@@ -1,0 +1,16 @@
+// General ignores
+*.swp
+my_venv
+__pycache__
+
+// Documenation ignores
+research
+todo.txt
+
+// Project file ignores
+CONFIG
+SERIAL
+*.db
+*.pem
+*.log
+*.pyc
