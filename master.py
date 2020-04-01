@@ -6,8 +6,8 @@ import time
 
 # In seconds
 SLEEP_TIME = 1
-MOSQUITTO_LOG_FILE = '%s/mosquitto.log' % help_lib.LOG_FOLDER
 
+# TODO: remove psutil
 def isRunning(name):
     for proc in psutil.process_iter():
         try:
@@ -22,8 +22,9 @@ def main():
     while True:
         # Spin up broker
         if not isRunning('mosquitto'):
-            # Run in background and redirect stdout and stderr to mosquitto.log
-            os.system('mosquitto -d >> %s 2>&1' % MOSQUITTO_LOG_FILE)
+            # Run in background and use config file
+            # TODO: try different ports?
+            os.system('mosquitto -d -c mosquitto.conf')
 
         # Spin up webapp
 
