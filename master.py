@@ -1,21 +1,14 @@
 import help_lib
 import logging
 import os
-import psutil
+import pgrep
 import time
 
 # In seconds
 SLEEP_TIME = 1
 
-# TODO: remove psutil
 def isRunning(name):
-    for proc in psutil.process_iter():
-        try:
-            if name.lower() == proc.name().lower():
-                return True
-        except Exception as e:
-            logging.error(e)
-    return False
+    return len(pgrep.pgrep(name)) > 0
 
 def main():
     help_lib.initLogger()
