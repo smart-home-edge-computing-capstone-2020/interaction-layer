@@ -45,7 +45,7 @@ of implementation and the other information stored in the database.
 
 As a result, each node's database will have the following tables:
 
-SQLite does not support booleans. As such, they aer represented integers where
+SQLite does not support booleans. As such, they are represented integers where
 0 is false and 1 is true.
 
 #### sensor\_data
