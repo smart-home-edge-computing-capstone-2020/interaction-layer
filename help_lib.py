@@ -14,7 +14,9 @@ def getOwnSerial():
         result = fp.readline()
 
     # TODO: make sure length is enough
-    return result[:-1]
+    # Remove newline character
+    result = result[:-1]
+    return int(result)
 
 # TODO: do I need?
 def getOwnIp():
