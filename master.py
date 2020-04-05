@@ -19,7 +19,16 @@ def main():
             # TODO: try different ports?
             os.system('mosquitto -d -c mosquitto.conf')
 
-        # Spin up webapp
+        # Spin up webapp backend
+        if not isRunning('flask'):
+            os.system('''cd ../ecp-webapp/flask-backend &&
+                         source my_venv/bin/activate && 
+                         FLASK_APP=api.py FLASK_ENV=development flask run &>> backend.log &''')
+
+        # Spin up webapp frontend
+        if not isRunning('node'):
+            os.system('''cd ../ecp-webapp/ecp-frontend &&
+                         serve -s build &>> frontend.log &''')
 
         time.sleep(SLEEP_TIME)
 
