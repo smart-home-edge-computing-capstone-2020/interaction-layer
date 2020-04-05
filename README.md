@@ -31,11 +31,11 @@ The database has to store the following information:
     - alive (whether the node is up or not) (todo: should this be in heartbeat table?)
     - timestamp of last alive
       note that the above 2 together create a "heartbeat"
-- stored transactions
+- stored interactions
 
-note that all the nodes in the network will not necessarily have identical
-sqlite databases. of the above information, only node data and defined
-transactions should be synced across nodes. sensor data will be stored
+Note that all the nodes in the network will not necessarily have identical
+sqlite databases. Of the above information, only node data and defined
+interactions should be synced across nodes. sensor data will be stored
 exclusively on the node that gathered the data. Similarly, subscribed channels
 will be stored only on the node that is subscribing.
 
@@ -59,12 +59,12 @@ SQLite does not support booleans. As such, they are represented integers where
 | :-------------:  | :---------: | :--------: | :--------: | :--------: | :--------: | :----: | :----------------------: |
 | int              | text        | bool       | bool       | bool       | bool       | bool   | int, seconds since epoch |
 
-#### transactions
+#### interactions
 | source\_serial | operator | value | dest\_serial | action |
 | :------------: | :------: | :---: | :----------: | :----: |
 | int            | text     | int   | int          | text   |
 
-Note: In the transactions table, operator is one of {'<', '<=', '==', '>', '>=}
+Note: In the interactions table, operator is one of {'<', '<=', '==', '>', '>=}
 <br>E.g. "if source < 5 then dest action"
 <br>In this case, if the sensor data published by the source node is <5, the dest node will do "action"
 
@@ -93,11 +93,11 @@ and whether that subsystem is publishing or subscribing to the topic.
 - node
     - publish
         - heartbeats
-        - {node_serial_num}_data_stream (for transactions)
+        - {node_serial_num}_data_stream (for interactions)
     - subscribe
         - heartbeats
         - config_changes - {node_serial_num}_data_req
-        - {node_serial_num}_data_stream (for transactions)
+        - {node_serial_num}_data_stream (for interactions)
 
 
 Citations:

@@ -31,7 +31,7 @@ def main():
             );''')
 
     c.execute(
-        '''CREATE table transactions (
+        '''CREATE table interactions (
             source_serial integer,
             operator text,
             value integer,
