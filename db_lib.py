@@ -1,4 +1,5 @@
 import sqlite3
+from help_lib import getOwnSerial
 
 DB_FILENAME = 'node_data.db'
     
@@ -46,21 +47,13 @@ def getBrokerIp():
     conn.close()
     return result[0][0]
 
-def getOwnSerial():
-    # TODO: Should check if serial file exists
-    with open('SERIAL', 'r') as fp:
-        result = fp.readline()
-
-    # TODO: make sure length is enough
-    return result[:-1]
-
-def isMaster():
+def getBoolResult(col):
     # Connect to db
     conn = sqlite3.connect(DB_FILENAME)
     c = conn.cursor()
     
     serial = getOwnSerial()
-    query = 'SELECT is_master FROM node_data WHERE serial IS %s;' % serial
+    query = 'SELECT %s FROM node_data WHERE serial IS %s;' % (col, serial)
     result = c.execute(query).fetchall()
 
     if len(result) != 1:
@@ -69,3 +62,9 @@ def isMaster():
 
     conn.close()
     return result[0][0] == 1
+
+def isMaster():
+    return getBoolResult('is_master')
+
+def isSensor():
+    return getBoolResult('is_sensor')
