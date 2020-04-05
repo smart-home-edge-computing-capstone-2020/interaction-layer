@@ -1,13 +1,13 @@
-// General ignores
+# General ignores
 *.swp
 my_venv
 __pycache__
 
-// Documenation ignores
+# Documenation ignores
 research
 todo.txt
 
-// Project file ignores
+# Project file ignores
 CONFIG
 SERIAL
 *.db
