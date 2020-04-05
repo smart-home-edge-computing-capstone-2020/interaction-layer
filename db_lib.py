@@ -47,12 +47,11 @@ def getBrokerIp():
     conn.close()
     return result[0][0]
 
-def getBoolResult(col):
+def getBoolResult(serial, col):
     # Connect to db
     conn = sqlite3.connect(DB_FILENAME)
     c = conn.cursor()
     
-    serial = getOwnSerial()
     query = 'SELECT %s FROM node_data WHERE serial IS %s;' % (col, serial)
     result = c.execute(query).fetchall()
 
@@ -63,8 +62,14 @@ def getBoolResult(col):
     conn.close()
     return result[0][0] == 1
 
-def isMaster():
-    return getBoolResult('is_master')
+def isMaster(serial):
+    return getBoolResult(serial, 'is_master')
 
-def isSensor():
-    return getBoolResult('is_sensor')
+def isSensor(serial):
+    return getBoolResult(serial, 'is_sensor')
+
+def isDevice(serial):
+    return getBoolResult(serial, 'is_device')
+
+def isUp(serial):
+    return getBoolResult(serial, 'is_up')
