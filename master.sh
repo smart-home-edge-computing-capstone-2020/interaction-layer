@@ -1,3 +1,5 @@
+# TODO: Parameterize logs folder name
+
 # Time between checking processes
 SLEEP_TIME=1
 
