@@ -55,7 +55,7 @@ SQLite does not support booleans. As such, they are represented integers where
 
 
 #### node\_data
-| serial (key) | ip\_address | is\_sensor | is\_device | is\_master | is\_broker | is\_up | last\_up                 |
+| serial (key)     | ip\_address | is\_sensor | is\_device | is\_master | is\_broker | is\_up | last\_up                 |
 | :-------------:  | :---------: | :--------: | :--------: | :--------: | :--------: | :----: | :----------------------: |
 | int              | text        | bool       | bool       | bool       | bool       | bool   | int, seconds since epoch |
 
@@ -93,11 +93,11 @@ and whether that subsystem is publishing or subscribing to the topic.
 - node
     - publish
         - heartbeats
-        - {node_serial_num}_data_stream (for interactions)
+        - {node_serial_num}/data_stream (for interactions)
     - subscribe
         - heartbeats
-        - config_changes - {node_serial_num}_data_req
-        - {node_serial_num}_data_stream (for interactions)
+        - config_changes - {node_serial_num}/data_request
+        - {node_serial_num}/data_stream (for interactions)
 
 
 Citations:
