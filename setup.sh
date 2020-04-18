@@ -24,7 +24,6 @@ pip install -r requirements.txt
 python3 setup_db.py
 
 # Set up the CONFIG file TODO
-# Set up the SERIAL file TODO
 # Start up the node process TODO
 
 # TODO: how to get other node's data to fill in db?

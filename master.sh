@@ -1,4 +1,5 @@
 # TODO: Parameterize logs folder name
+# TODO: Add timestamps to error messages
 
 # Time between checking processes
 SLEEP_TIME=1
@@ -31,5 +32,5 @@ do
 		cd ../../interaction-layer
 	fi
 
-	sleep SLEEP_TIME
+	sleep $SLEEP_TIME
 done

@@ -1,7 +1,8 @@
+from help_lib import parseConfig
 import os
 import sqlite3
 
-DB_FILENAME = 'node_data.db'
+DB_FILENAME = parseConfig()['db_filename']
     
 def main():
     # Start the database fresh
@@ -22,21 +23,23 @@ def main():
         '''CREATE table node_data (
             serial integer PRIMARY KEY,
             ip_address text,
-            is_sensor integer,
-            is_device integer,
             is_master integer,
             is_broker integer,
             is_up integer,
-            last_up integer
+            last_up integer,
+            display_name text,
+            description text
             );''')
 
     c.execute(
         '''CREATE table interactions (
-            source_serial integer,
+            trigger_serial integer,
             operator text,
             value integer,
-            dest_serial integer,
-            action text
+            target_serial integer,
+            action text,
+            display_name text,
+            description text
             );''')
 
     # Save changes
