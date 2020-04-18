@@ -22,14 +22,3 @@ pip install -r requirements.txt
 
 # Set up the database
 python3 setup_db.py
-
-# Set up the CONFIG file TODO
-# Start up the node process TODO
-
-# TODO: how to get other node's data to fill in db?
-# Python libs needed:
-# pgrep
-# time
-# os
-# wheel
-# paho-mqtt

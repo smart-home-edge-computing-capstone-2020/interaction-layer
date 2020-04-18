@@ -48,4 +48,8 @@ def initLogger():
     log_folder = os.path.expanduser(parseConfig()['log_folder'])
     log_file = '%s/node.log' % log_folder
     os.system('mkdir %s' % log_folder)
-    logging.basicConfig(filename=log_file, level=logging.DEBUG)
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.DEBUG,
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')

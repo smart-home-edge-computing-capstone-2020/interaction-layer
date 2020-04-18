@@ -1,4 +1,5 @@
 from help_lib import parseConfig
+import logging
 import os
 import sqlite3
 
@@ -18,7 +19,6 @@ def getSqlResult(query):
 
 # Helper function to perform a MODIFYING sql query to write data
 def commitSqlQuery(query):
-    # TODO: error check vals
     conn = sqlite3.connect(DB_FILENAME)
     conn.cursor().execute(query)
     conn.commit()
@@ -43,6 +43,11 @@ def getColNames(table):
 # we aren't doing new device commissioning.
 # @param vals: a dict mapping column name to value
 def addNode(vals):
+    # If node exists, don't re-add
+    if len(getNode(vals['serial'])) > 0:
+        logging.warning('Trying to insert duplicate node: ' + str(vals))
+        return
+
     query = '''
         INSERT INTO node_data (serial,
                                ip_address,
@@ -83,19 +88,25 @@ def interactionExists(vals):
     result = getSqlResult(query)
 
     if len(result) > 1:
-        # TODO: log this instead of printing
-        print(result)
-        raise Exception('Uh oh! Duplicate entry found.')
+        logging.error('Found duplicate interaction in db: ' + str(result))
+        return True
 
     return len(result) == 1
+
+def deleteInteraction(interaction_id):
+    query = 'DELETE FROM interactions WHERE interaction_id IS %d'%interaction_id
+    commitSqlQuery(query)
 
 # Helper function to add an interaction to the database.
 # Note that when using in production, if trigger_serial, operator, value,
 # target_serial, and action all match, then teh interaction won't be added.
 # @param vals: a dict mapping column name to value
 def addInteraction(vals):
+    # TODO: should I warn the frontend and the user?
     if interactionExists(vals):
+        logging.warning('Trying to insert duplicate interaction: ' + str(vals))
         return
+
     query = '''
         INSERT INTO interactions (trigger_serial,
                                   operator,
@@ -120,9 +131,14 @@ def getBrokerIp():
     result = getSqlResult(query)
 
     # Can't have more than 1 broker!
-    if len(result) != 1:
-        # TODO: This should be handled!
-        pass
+    if len(result) > 1:
+        logging.error('Found more than 1 broker in db: ' + str(result))
+
+    # No broker found...
+    if len(result) == 0:
+        logging.error('No broker found in db: ' + str(result))
+        #TODO: what now? it will crash below...
+
     # Elem 0, col 0
     return result[0][0]
 
@@ -131,9 +147,13 @@ def getBoolResult(serial, col):
     result = getSqlResult(query)
 
     # Serial should be unique
-    if len(result) != 1:
-        # TODO: This should be handled!
-        pass
+    if len(result) > 1:
+        logging.error('Found more than 1 node with same serial in db: ' + str(result))
+
+    if len(result) == 0:
+        logging.warning('Serial %d not found in getBoolResult for column %s.'
+                        % (serial, col))
+        #TODO: what now? it will crash below...
 
     # Elem 0, col 0
     return result[0][0] == 1
