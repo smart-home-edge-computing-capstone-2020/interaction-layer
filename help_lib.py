@@ -3,12 +3,6 @@ import os
 
 # Use expanduser to expand ~ to the user's home directory
 CONFIG_FILE = os.path.expanduser('~/CONFIG')
-LOG_FOLDER = os.path.expanduser('~/logs')
-LOG_FILE = '%s/node.log' % LOG_FOLDER
-
-def initLogger():
-    os.system('mkdir %s' % LOG_FOLDER)
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
 
 def parseConfig():
     # Programmer forgot to init config file. Remind them.
@@ -46,3 +40,12 @@ def parseConfig():
             result[key] = val
 
     return result
+
+def printLogFolder():
+    print(parseConfig()['log_folder'])
+
+def initLogger():
+    log_folder = os.path.expanduser(parseConfig()['log_folder'])
+    log_file = '%s/node.log' % log_folder
+    os.system('mkdir %s' % log_folder)
+    logging.basicConfig(filename=log_file, level=logging.DEBUG)

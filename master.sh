@@ -1,23 +1,21 @@
-# TODO: Parameterize logs folder name
-# TODO: Add timestamps to error messages
-
 # Time between checking processes
 SLEEP_TIME=1
 
 # Make the logs directory if it doesn't exist
-mkdir logs
+LOG_FOLDER=$(python -c 'import help_lib; help_lib.printLogFolder()')
+mkdir $LOG_FOLDER
 
 while [ true ]
 do
     # Run the broker
 	if [[ !($(pgrep mosquitto)) ]]; then
-        echo 'mosquitto dead, restarting' >> logs/master.log
+        echo 'mosquitto dead, restarting' >> $LOG_FOLDER/master.log
 		mosquitto -d -c mosquitto.conf
 	fi
 
     # Run the webapp backend
 	if [[ !($(pgrep flask)) ]]; then
-        echo 'backend dead, restarting' >> logs/master.log
+        echo 'backend dead, restarting' >> $LOG_FOLDER/master.log
 		cd ../ecp-webapp/flask-backend
 		source my_venv/bin/activate
 		FLASK_APP=api.py FLASK_ENV=development flask run &>> backend.log &
@@ -26,7 +24,7 @@ do
 
     # Run the webapp frontend
 	if [[ !($(pgrep npm)) ]]; then
-        echo 'frontend dead, restarting' >> logs/master.log
+        echo 'frontend dead, restarting' >> $LOG_FOLDER/master.log
 		cd ../ecp-webapp/ecp-frontend
 		npm start &>> frontend.log &
 		cd ../../interaction-layer
