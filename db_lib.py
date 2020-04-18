@@ -1,7 +1,9 @@
 from help_lib import parseConfig
+import os
 import sqlite3
 
-DB_FILENAME = parseConfig()['db_filename']
+# Use expanduser to expand ~ to the user's home directory
+DB_FILENAME = os.path.expanduser(parseConfig()['db_filename'])
     
 # Helper function to perform a NON MODIFYING sql query to read data
 # @return: a list of tuples, where each tuple is a matching row in the table
@@ -156,3 +158,15 @@ def getOwnInteractions():
 def getAllNodes():
     query = 'SELECT * FROM node_data'
     return sqlResultToDict('node_data', query)
+
+def getNode(serial):
+    query = 'SELECT * FROM node_data WHERE serial IS %d' % serial
+    return sqlResultToDict('node_data', query)[0]
+
+def getAllInteractions():
+    query = 'SELECT * FROM interactions'
+    return sqlResultToDict('interactions', query)
+
+def getInteraction(interaction_id):
+    query = 'SELECT * FROM interactions WHERE interaction_id IS %d' % interaction_id
+    return sqlResultToDict('interactions', query)[0]

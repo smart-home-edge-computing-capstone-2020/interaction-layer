@@ -1,9 +1,10 @@
 import logging
 import os
 
-LOG_FOLDER = 'logs'
+# Use expanduser to expand ~ to the user's home directory
+CONFIG_FILE = os.path.expanduser('~/CONFIG')
+LOG_FOLDER = os.path.expanduser('~/logs')
 LOG_FILE = '%s/node.log' % LOG_FOLDER
-CONFIG_FILE = 'CONFIG'
 
 def initLogger():
     os.system('mkdir %s' % LOG_FOLDER)
