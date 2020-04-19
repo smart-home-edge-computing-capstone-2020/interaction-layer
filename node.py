@@ -1,11 +1,29 @@
-from db_lib import *
-from help_lib import *
+from db_lib import getOwnInteractions, getBrokerIp, isMaster
+from config_parser import parseConfig
 import json
 import operator
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
 import subprocess
 import time
+
+
+'''
+TODO
+'config changes' from webapp
+    add (interaction), provide all data
+    delete (interaction), provide interaction id
+    update (node), provide new description AND name (maybe optional and I search?)
+
+integrate with hardware layer
+interactions should be ironed out
+
+heartbeats
+master failover
+
+DONE
+nodes should respond statuses
+'''
 
 SLEEP_TIME = 1
 interactions = dict()
@@ -17,12 +35,17 @@ OPS = {"<"  : operator.lt,
        ">"  : operator.gt
 }
 
-def doConfigChange(client, userdata, message):
-    #TODO: update global config variable
-    print(message.payload.decode('utf-8'))
+# Make global so that handler functions can also publish
+conn = None
 
-def serveData(client, userdata, message):
-    print(message.payload.decode('utf-8'))
+# Used when webapps requests this node's status
+def handleStatusRequest(client, userdata, message):
+    # Ignore input, just send back the status.
+    global conn
+    # TODO: add Rips status here
+    status = json.dumps({'status' : 'on'})
+    serial = parseConfig()['serial']
+    conn.publish('%d/status_response' % serial, status)
 
 def handleInteraction(client, userdata, message):
     # TODO: maybe pull this from the message?
@@ -39,40 +62,39 @@ def handleInteraction(client, userdata, message):
                 # TODO: add rips thing here
                 print(i['action'])
 
+# TODO: this is a filler until integrated with Rip
 def readSensorData():
     return 5
 
 def main():
-    # TODO: spin up master first so that broker is up
-    '''
-    if current node is master():
-        subprocess.call(['/bin/bash', '-c', './master.sh &'])
-        # Give master time to start broker
-        time.sleep(3)
-    '''
+    config = parseConfig()
+    # TODO: uncomment this for production. I don't want random webapps rn.
+    #if isMaster(config['serial']):
+    #    subprocess.call(['/bin/bash', '-c', './master.sh &'])
+    #    # Give master time to start broker
+    #    time.sleep(3)
 
-
-    # TODO: Error checking. what if broker not up?
+    global conn
+    # TODO: Error checking. what if broker not up? Then connect fails.
     # Create mqtt client object and connect to broker
-    conn = mqtt.Client()
+    conn = mqtt.Client(client_id='node%d' % config['serial'],
+                       clean_session=True)
     conn.connect(getBrokerIp())
 
     # Start the async publishing loop. Manages sending mqtt network packets
     conn.loop_start()
 
-    serial = parseConfig()['serial']
+    # Subscribe for status requests from the webapp
+    topic = '%d/status_request' % config['serial']
+    conn.message_callback_add(topic, handleStatusRequest)
+    conn.subscribe(topic)
+
     '''
     # Subscribe for config changes from the webapp
     conn.message_callback_add('config_change', doConfigChange)
     conn.subscribe('config_change')
-
-    # Subscribe for sensor data requests from the webapp
-    if isSensor(serial):
-        topic = '%d/data_request' % serial
-        conn.message_callback_add(topic, serveData)
-        conn.subscribe(topic)
-
     '''
+
     # Subscribe for each interaction
     global interactions
     interactions = getOwnInteractions()
@@ -81,8 +103,8 @@ def main():
         conn.message_callback_add(topic, handleInteraction)
         conn.subscribe(topic)
 
-
-    topic = '%d/data_stream' % serial
+    # Publish sensor data for other device's interactions
+    topic = '%d/data_stream' % config['serial']
     while True:
         # TODO: change this to Rip's thing
         data = {'data' : readSensorData()}
@@ -95,3 +117,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
