@@ -39,3 +39,22 @@ def parseConfig():
             result[key] = val
 
     return result
+
+def parseHardwareDescription():
+    hardware_file = os.path.expanduser(parseConfig()['hardware_file'])
+    result = ""
+    with open(hardware_file, 'r') as fp:
+        for line in fp:
+            # Strip newline character
+            if len(line) > 0 and line[-1] == '\n':
+                line = line[:-1]
+
+            # Remove spaces
+            line = line.replace(' ', '')
+
+            # json.loads requires " instead of '
+            line.replace('\'', '"')
+
+            result += line
+
+    return result

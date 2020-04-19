@@ -1,4 +1,4 @@
-from config_parser import parseConfig
+from config_parser import *
 from db_lib import getOwnInteractions, getBrokerIp, isMaster
 from db_lib import deleteInteractionFromDb, writeInteractionToDb
 from db_lib import updateNodeInDb
@@ -11,6 +11,12 @@ import paho.mqtt.subscribe as subscribe
 import subprocess
 import time
 
+# Since HardwareLibrary.py in diff folder, have to add to path before import
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+sys.path.insert(1, '../hardware-emulator/hardware_library')
+from HardwareLibrary import HardwareLibrary
+
 '''
 TODO
 integrate with hardware layer
@@ -18,6 +24,11 @@ interactions should be ironed out
 
 heartbeats
 master failover
+    - look into nodes adding wills to a heartbeats topic, if they randomly
+      disconnect it'll get sent to everyone.
+    - define an on_disconnect for the client? so if broker goes down can promote
+    - assign extra static IP on aws, just for webapp. Whichever node hosts it
+      claims the IP
 
 DONE
 nodes should respond statuses
@@ -38,8 +49,9 @@ OPS = {"<"  : operator.lt,
        ">"  : operator.gt
 }
 
-# Make global so that handler functions can also publish
+# Make global so that handler functions can also access
 conn = None
+hardwareClient = None
 
 # Used when webapps requests this node's status
 def handleStatusRequest(client, userdata, message):
@@ -108,7 +120,11 @@ def main():
     #    # Give master time to start broker
     #    time.sleep(3)
 
-    global conn
+    global conn, hardwareClient
+
+    # Init connection to hardware library
+    #hardwareClient = HardwareLibrary(parseHardwareDescription(), "")
+
     # TODO: Error checking. what if broker not up? Then connect fails.
     # Create mqtt client object and connect to broker
     conn = mqtt.Client(client_id='node%d' % config['serial'],
