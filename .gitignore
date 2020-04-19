@@ -6,6 +6,7 @@ __pycache__
 # Project file ignores
 CONFIG
 *.db
+*.sqlite
 *.json
 *.pem
 *.log

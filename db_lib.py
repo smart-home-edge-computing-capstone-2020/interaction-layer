@@ -143,6 +143,22 @@ def writeInteractionToDb(vals):
 
     commitSqlQuery(query)
 
+def getMasterSerial():
+    query = 'SELECT serial FROM node_data WHERE is_master IS 1;'
+    result = getSqlResult(query)
+
+    # Can't have more than 1 master!
+    if len(result) > 1:
+        logging.error('Found more than 1 master in db: ' + str(result))
+
+    # No master found...
+    if len(result) == 0:
+        logging.error('No master found in db: ' + str(result))
+        #TODO: what now? it will crash below...
+
+    # Elem 0, col 0
+    return result[0][0]
+
 def getBrokerIp():
     query = 'SELECT ip_address FROM node_data WHERE is_broker IS 1;'
     result = getSqlResult(query)

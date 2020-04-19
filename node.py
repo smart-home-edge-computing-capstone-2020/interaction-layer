@@ -1,7 +1,5 @@
 from config_parser import *
-from db_lib import getOwnInteractions, getBrokerIp, isMaster
-from db_lib import deleteInteractionFromDb, writeInteractionToDb
-from db_lib import updateNodeInDb, setBoolCol
+from db_lib import *
 from help_lib import initLogger
 import json
 import logging
@@ -46,7 +44,9 @@ nodes should respond statuses
     update (node), provide new description AND name (maybe optional and I search?)
 '''
 
-SLEEP_TIME = 1
+DATA_PUB_INTERVAL = 1
+MASTER_WAIT_INTERVAL = 1
+
 interactions = dict()
 OPS = {"<"  : operator.lt,
        "<=" : operator.le,
@@ -60,92 +60,11 @@ OPS = {"<"  : operator.lt,
 conn = None
 hardwareClient = None
 
-# Used when webapps requests this node's status
-def handleStatusRequest(client, userdata, message):
-    # Ignore input, just send back the status.
-    global conn
-    # TODO: add Rips status here
-    status = json.dumps({'status' : 'on'})
-    serial = parseConfig()['serial']
-    conn.publish('%d/status_response' % serial, status)
-
-def handleInteraction(client, userdata, message):
-    # TODO: maybe pull this from the message?
-    sourceSerial = int(message.topic.split('/')[0])
-    data = json.loads(message.payload.decode('utf-8'))
-
-    for i in interactions:
-        if i['trigger_serial'] == sourceSerial:
-            operator = OPS[i['operator']]
-            destVal = i['value']
-            srcVal = data['data']
-
-            if operator(srcVal, destVal):
-                # TODO: add rips thing here
-                print(i['action'])
-
-def handleWebappUpdate(client, userdata, message):
-    data = json.loads(message.payload.decode('utf-8'))
-
-    if data['table'] == 'node_data':
-        if data['type'] == 'update':
-            updateNodeInDb(data['serial'], data['vals'])
-            return
-
-        logging.warning('Recieved update from webapp of incorrect type: '
-                        + str(data))
-
-    elif data['table'] == 'interactions':
-        if data['type'] == 'add':
-            writeInteractionToDb(data['vals'])
-
-        elif data['type'] == 'delete':
-            deleteInteractionFromDb(data['interaction_id'])
-
-        elif data['type'] == 'update':
-            deleteInteractionFromDb(data['interaction_id'])
-            writeInteractionToDb(data['vals'])
-
-        else:
-            logging.warning('Recieved update from webapp of incorrect type: '
-                            + str(data))
-    else:
-        logging.warning('Recieved update from webapp to incorrect table: '
-                        + str(data))
-
-# This function should assume that the master node has died, since the broker is
-# dead, and should take care of master failover.
-# @note: if in the future the broker is separated from the master node, this
-#        will need to be changed.
-def handleDisconnect(client, userdata, rc):
-    print('broker is ded ' + str(rc))
-
-# A message will only publish to this topic if a node has disconnected
-def handleHeartbeats(client, userdata, message):
-    data = json.loads(message.payload.decode('utf-8'))
-    logging.info('node %d has died' % data['serial'])
-
-    setBoolCol(data['serial'], 'is_up', False)
-    setBoolCol(data['serial'], 'last_up', int(time.time()))
-
-# TODO: this is a filler until integrated with Rip
-def readSensorData():
-    return 5
-
-def main():
+# Should be called after you're certain that the ip address for the node marked
+# as broker in the db is correct.
+def initBrokerConnection():
     config = parseConfig()
-    initLogger()
-
-    # TODO: uncomment this for production. I don't want random webapps rn.
-    #if isMaster(config['serial']):
-    #    subprocess.call(['/bin/bash', '-c', './master.sh &'])
-    #    # Give master time to start broker
-    #    time.sleep(3)
-
-    global conn, hardwareClient
-
-    # Init connection to hardware library
-    #hardwareClient = HardwareLibrary(parseHardwareDescription(), "")
+    global conn
 
     # TODO: Error checking. what if broker not up? Then connect fails.
     # clean_session=True means every time we connect, delete old data.
@@ -154,7 +73,11 @@ def main():
     # TODO: uncomment this after done manual testing on same device
     #conn = mqtt.Client(client_id='node%d' % config['serial'],
     #                  clean_session=True)
-    conn = mqtt.Client()
+    if conn is not None:
+        conn.loop_stop()
+        conn = reinitialise()
+    else:
+        conn = mqtt.Client()
 
     # Set a will. If node dies, broker will distribute payload.
     will = {'serial':config['serial']}
@@ -189,17 +112,146 @@ def main():
         conn.message_callback_add(topic, handleInteraction)
         conn.subscribe(topic)
 
+# Used when webapps requests this node's status
+def handleStatusRequest(client, userdata, message):
+    # Ignore input, just send back the status.
+    global conn
+    # TODO: add Rips status here
+    status = json.dumps({'status' : 'on'})
+    serial = parseConfig()['serial']
+    conn.publish('%d/status_response' % serial, status)
+
+def handleInteraction(client, userdata, message):
+    # TODO: maybe pull this from the message?
+    sourceSerial = int(message.topic.split('/')[0])
+    data = json.loads(message.payload.decode('utf-8'))
+
+    for i in interactions:
+        if i['trigger_serial'] == sourceSerial:
+            operator = OPS[i['operator']]
+            destVal = i['value']
+            srcVal = data['data']
+
+            if operator(srcVal, destVal):
+                # TODO: add rips thing here
+                print(i['action'])
+
+# TODO: need to actually manage the subscriptions subbed to... and the global
+#       interactions dict
+def handleWebappUpdate(client, userdata, message):
+    data = json.loads(message.payload.decode('utf-8'))
+
+    if data['table'] == 'node_data':
+        if data['type'] == 'update':
+            updateNodeInDb(data['serial'], data['vals'])
+            return
+
+        logging.warning('Recieved update from webapp of incorrect type: '
+                        + str(data))
+
+    elif data['table'] == 'interactions':
+        if data['type'] == 'add':
+            writeInteractionToDb(data['vals'])
+
+        elif data['type'] == 'delete':
+            deleteInteractionFromDb(data['interaction_id'])
+
+        elif data['type'] == 'update':
+            deleteInteractionFromDb(data['interaction_id'])
+            writeInteractionToDb(data['vals'])
+
+        else:
+            logging.warning('Recieved update from webapp of incorrect type: '
+                            + str(data))
+    else:
+        logging.warning('Recieved update from webapp to incorrect table: '
+                        + str(data))
+
+def startMasterProc():
+    subprocess.call(['/bin/bash', '-c', './master.sh &'])
+    # Give master time to start broker
+    time.sleep(MASTER_WAIT_INTERVAL)
+
+# This function deals with master failover, and returns the serial number of the
+# new master to be promoted.
+# Of the nodes that are currently up, returns the one with the lowest serial
+def getNewMasterSerial():
+    query = '''
+        SELECT serial FROM node_data
+        WHERE is_up = 1
+        ORDER BY serial
+    '''
+    result = getSqlResult(query)
+    if len(result) == 0:
+        return parseConfig['serial']
+
+    return result[0][0]
+
+# This function should assume that the master node has died, since the broker is
+# dead, and should take care of master failover.
+# @note: if in the future the broker is separated from the master node, this
+#        will need to be changed.
+def handleDisconnect(client, userdata, rc):
+    logging.info('broker has died with return code %d' % rc)
+    oldMaster = getMasterSerial()
+
+    # Make sure node is marked as dead
+    setBoolCol(oldMaster, 'is_up', False)
+    setBoolCol(oldMaster, 'last_up', int(time.time()))
+
+    # Mark as not master and prepare for failover
+    setBoolCol(oldMaster, 'is_master', False)
+    setBoolCol(oldMaster, 'is_broker', False)
+
+    newMaster = getNewMasterSerial()
+    if newMaster == parseConfig['serial']:
+        # Promote self
+        #startMasterProc()
+        pass
+
+    # Connect to new master
+    initBrokerConnection()
+
+
+# A message will only publish to this topic if a node has disconnected
+def handleHeartbeats(client, userdata, message):
+    data = json.loads(message.payload.decode('utf-8'))
+    logging.info('node %d has died' % data['serial'])
+
+    setBoolCol(data['serial'], 'is_up', False)
+    setBoolCol(data['serial'], 'last_up', int(time.time()))
+
+    # Could do 'if isMaster(data['serial']): doMasterFailover()'
+    # However, if broker really died, then handleDisconnect will be triggered to
+    # take care of the failover.
+
+# TODO: this is a filler until integrated with Rip
+def readSensorData():
+    return 5
+
+def main():
+    initLogger()
+
+    # TODO: uncomment this for production. I don't want random webapps rn.
+    #if isMaster(config['serial']):
+    #   startMasterProc()
+
+    global conn, hardwareClient
+
+    # Init connection to hardware library
+    #hardwareClient = HardwareLibrary(parseHardwareDescription(), "")
+
+    # Init broker connection
+    initBrokerConnection()
+
     # Publish sensor data for other device's interactions
-    topic = '%d/data_stream' % config['serial']
+    topic = '%d/data_stream' % parseConfig['serial']
     while True:
         # TODO: change this to Rip's thing
         data = {'data' : readSensorData()}
-
         conn.publish(topic, json.dumps(data))
 
-        # TODO: publish heartbeats
-
-        time.sleep(SLEEP_TIME)
+        time.sleep(DATA_PUB_INTERVAL)
 
 if __name__ == '__main__':
     main()
