@@ -1,6 +1,5 @@
-from help_lib import parseConfig
+from config_parser import parseConfig
 import logging
-from mqtt_socket import MqttSocket
 import os
 import sqlite3
 
@@ -190,30 +189,17 @@ def getAllInteractions():
 
 def getInteraction(interaction_id):
     query = 'SELECT * FROM interactions WHERE interaction_id IS %d' % interaction_id
-    return sqlResultToDict('interactions', query)[0]
+    result = sqlResultToDict('interactions', query)
 
-def isMaster(serial):
+    if len(result) == 0:
+        logging.warning('Tried to access nonexistent interaction with id %d'
+                     % interaction_id)
+        return None
+
+    return result[0]
+
+def isMaster(serial=None):
+    if serial is None:
+        serial = parseConfig()['serial']
+
     return getBoolResult(serial, 'is_master')
-
-# Note: This function only works when the broker and nodes are up
-# @param serial: a list of integers representing the serial numbers to get the
-#                statuses of.
-def getNodeStatus(serials):
-    # TODO: Error checking. what if broker not up?
-    sock = MqttSocket(getBrokerIp())
-
-    result = dict()
-
-    for s in serials:
-        listenTopic = '%d/status_response' % s
-        sock.setListen(listenTopic)
-
-        # Publish empty message to trigger response from node
-        requestTopic = '%d/status_request' % s
-        status = sock.getResponse(requestTopic, '{}')
-
-        result[s] = status
-
-    sock.cleanup()
-
-    return result

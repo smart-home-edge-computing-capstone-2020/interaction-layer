@@ -2,6 +2,7 @@ import json
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
 import time
+from db_lib import getBrokerIp
 
 # This class functions as a wrapper so that a client can easily get "linear"
 # request / response patterns from another device, without having to create
@@ -23,7 +24,11 @@ class MqttSocket:
         resp = json.loads(message.payload.decode('utf-8'))
         self.returnVal = resp
 
-    def __init__(self, brokerIp):
+    def __init__(self, brokerIp=None):
+        if brokerIp is None:
+            brokerIp = getBrokerIp()
+
+        # TODO: Error checking. What if the broker isn't up?
         # Connect to the brokerjas anonymous device
         self.conn = mqtt.Client()
         self.conn.connect(brokerIp)
