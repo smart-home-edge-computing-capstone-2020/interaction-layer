@@ -159,7 +159,8 @@ def getBrokerIp():
     # Elem 0, col 0
     return result[0][0]
 
-def getBoolResult(serial, col):
+# Get a boolean value from the node_data table
+def getBoolCol(serial, col):
     query = 'SELECT %s FROM node_data WHERE serial IS %s;' % (col, serial)
     result = getSqlResult(query)
 
@@ -168,12 +169,27 @@ def getBoolResult(serial, col):
         logging.error('Found more than 1 node with same serial in db: ' + str(result))
 
     if len(result) == 0:
-        logging.warning('Serial %d not found in getBoolResult for column %s.'
+        logging.warning('Serial %d not found in getBoolCol for column %s.'
                         % (serial, col))
         #TODO: what now? it will crash below...
 
     # Elem 0, col 0
     return result[0][0] == 1
+
+# Set a boolean value in the node_data table
+def setBoolCol(serial, col, newVal):
+    if col not in getColNames('node_data'):
+        logging.warning('trying to update nonexistent col in node_data: '
+                        + col)
+        return
+
+    query = '''
+        UPDATE node_data
+        SET %s = %d
+        WHERE serial = %d
+    ''' % (col, newVal, serial)
+
+    commitSqlQuery(query)
 
 def sqlResultToDict(table, query):
     serial = parseConfig()['serial']
@@ -219,4 +235,4 @@ def isMaster(serial=None):
     if serial is None:
         serial = parseConfig()['serial']
 
-    return getBoolResult(serial, 'is_master')
+    return getBoolCol(serial, 'is_master')

@@ -1,7 +1,7 @@
 from config_parser import *
 from db_lib import getOwnInteractions, getBrokerIp, isMaster
 from db_lib import deleteInteractionFromDb, writeInteractionToDb
-from db_lib import updateNodeInDb
+from db_lib import updateNodeInDb, setBoolCol
 from help_lib import initLogger
 import json
 import logging
@@ -29,6 +29,11 @@ master failover
         conn.will_set(topic='heartbeats', payload='node 1 ded', qos=2)
         call before connect, idk why
     - define an on_disconnect for the client? so if broker goes down can promote
+    - If node goes down, update in the db
+    - If node that went down is also the master, initiate master failover:
+        - If self, promote
+        - try to connect to new broker
+        - todo - if fail, move to next node?
     - assign extra static IP on aws, just for webapp. Whichever node hosts it
       claims the IP
 
@@ -115,8 +120,13 @@ def handleWebappUpdate(client, userdata, message):
 def handleDisconnect(client, userdata, rc):
     print('broker is ded ' + str(rc))
 
+# A message will only publish to this topic if a node has disconnected
 def handleHeartbeats(client, userdata, message):
-    print('node is ded ' + str(json.loads(message.payload.decode('utf-8'))))
+    data = json.loads(message.payload.decode('utf-8'))
+    logging.info('node %d has died' % data['serial'])
+
+    setBoolCol(data['serial'], 'is_up', False)
+    setBoolCol(data['serial'], 'last_up', int(time.time()))
 
 # TODO: this is a filler until integrated with Rip
 def readSensorData():
@@ -141,11 +151,13 @@ def main():
     # clean_session=True means every time we connect, delete old data.
     # client_id being something meaningful is useful for debugging, since broker
     # prints out info about clients based on the id
-    conn = mqtt.Client(client_id='node%d' % config['serial'],
-                       clean_session=True)
+    # TODO: uncomment this after done manual testing on same device
+    #conn = mqtt.Client(client_id='node%d' % config['serial'],
+    #                  clean_session=True)
+    conn = mqtt.Client()
 
     # Set a will. If node dies, broker will distribute payload.
-    will = {'serial':config['serial'], 'status':'dead'}
+    will = {'serial':config['serial']}
     conn.will_set(topic='heartbeats', payload=json.dumps(will), qos=2)
 
     conn.connect(getBrokerIp())
