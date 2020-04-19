@@ -26,6 +26,8 @@ heartbeats
 master failover
     - look into nodes adding wills to a heartbeats topic, if they randomly
       disconnect it'll get sent to everyone.
+        conn.will_set(topic='heartbeats', payload='node 1 ded', qos=2)
+        call before connect, idk why
     - define an on_disconnect for the client? so if broker goes down can promote
     - assign extra static IP on aws, just for webapp. Whichever node hosts it
       claims the IP
@@ -106,6 +108,16 @@ def handleWebappUpdate(client, userdata, message):
         logging.warning('Recieved update from webapp to incorrect table: '
                         + str(data))
 
+# This function should assume that the master node has died, since the broker is
+# dead, and should take care of master failover.
+# @note: if in the future the broker is separated from the master node, this
+#        will need to be changed.
+def handleDisconnect(client, userdata, rc):
+    print('broker is ded ' + str(rc))
+
+def handleHeartbeats(client, userdata, message):
+    print('node is ded ' + str(json.loads(message.payload.decode('utf-8'))))
+
 # TODO: this is a filler until integrated with Rip
 def readSensorData():
     return 5
@@ -126,13 +138,27 @@ def main():
     #hardwareClient = HardwareLibrary(parseHardwareDescription(), "")
 
     # TODO: Error checking. what if broker not up? Then connect fails.
-    # Create mqtt client object and connect to broker
+    # clean_session=True means every time we connect, delete old data.
+    # client_id being something meaningful is useful for debugging, since broker
+    # prints out info about clients based on the id
     conn = mqtt.Client(client_id='node%d' % config['serial'],
                        clean_session=True)
+
+    # Set a will. If node dies, broker will distribute payload.
+    will = {'serial':config['serial'], 'status':'dead'}
+    conn.will_set(topic='heartbeats', payload=json.dumps(will), qos=2)
+
     conn.connect(getBrokerIp())
+
+    # Subscribe to handle nodes' dying
+    conn.message_callback_add('heartbeats', handleHeartbeats)
+    conn.subscribe('heartbeats')
 
     # Start the async publishing loop. Manages sending mqtt network packets
     conn.loop_start()
+
+    # Define disconnect behavior in case broker goes down
+    conn.on_disconnect = handleDisconnect
 
     # Subscribe for status requests from the webapp
     topic = '%d/status_request' % config['serial']
