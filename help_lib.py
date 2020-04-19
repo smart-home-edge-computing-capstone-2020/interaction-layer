@@ -97,7 +97,7 @@ def updateNode(serial, vals):
 
     payload = {'type': 'update',
                'table': 'node_data',
-               'serial', serial,
+               'serial': serial,
                'vals': vals}
     publish.single(topic='webapp/updates',
                    hostname=getBrokerIp(),

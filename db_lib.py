@@ -70,6 +70,22 @@ def writeNodeToDb(vals):
 
     commitSqlQuery(query)
 
+# @param serial: the serial number of the node to update
+# @param vals: a dict containing only 'display_name' and 'description'
+def updateNodeInDb(serial, vals):
+    if 'description' not in vals or 'display_name' not in vals:
+        logging.warning('trying to update node in db incorrectly'
+                        + str(vals))
+        return
+
+    query = '''
+        UPDATE node_data
+        SET description = '%s', display_name = '%s'
+        WHERE serial = %d
+    ''' % (vals['description'], vals['display_name'], serial)
+
+    commitSqlQuery(query)
+
 # Helper function to check if an interaction exists
 # @param vals: a dict mapping column name to value
 def interactionExists(vals):

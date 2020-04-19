@@ -1,20 +1,18 @@
-from db_lib import getOwnInteractions, getBrokerIp, isMaster
 from config_parser import parseConfig
+from db_lib import getOwnInteractions, getBrokerIp, isMaster
+from db_lib import deleteInteractionFromDb, writeInteractionToDb
+from db_lib import updateNodeInDb
+from help_lib import initLogger
 import json
+import logging
 import operator
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
 import subprocess
 import time
 
-
 '''
 TODO
-'config changes' from webapp
-    add (interaction), provide all data
-    delete (interaction), provide interaction id
-    update (node), provide new description AND name (maybe optional and I search?)
-
 integrate with hardware layer
 interactions should be ironed out
 
@@ -23,6 +21,11 @@ master failover
 
 DONE
 nodes should respond statuses
+'config changes' from webapp
+    add (interaction), provide all data
+    delete (interaction), provide interaction id
+    update (interaction): I just call the above 2 in order
+    update (node), provide new description AND name (maybe optional and I search?)
 '''
 
 SLEEP_TIME = 1
@@ -62,12 +65,43 @@ def handleInteraction(client, userdata, message):
                 # TODO: add rips thing here
                 print(i['action'])
 
+def handleWebappUpdate(client, userdata, message):
+    data = json.loads(message.payload.decode('utf-8'))
+
+    if data['table'] == 'node_data':
+        if data['type'] == 'update':
+            updateNodeInDb(data['serial'], data['vals'])
+            return
+
+        logging.warning('Recieved update from webapp of incorrect type: '
+                        + str(data))
+
+    elif data['table'] == 'interactions':
+        if data['type'] == 'add':
+            writeInteractionToDb(data['vals'])
+
+        elif data['type'] == 'delete':
+            deleteInteractionFromDb(data['interaction_id'])
+
+        elif data['type'] == 'update':
+            deleteInteractionFromDb(data['interaction_id'])
+            writeInteractionToDb(data['vals'])
+
+        else:
+            logging.warning('Recieved update from webapp of incorrect type: '
+                            + str(data))
+    else:
+        logging.warning('Recieved update from webapp to incorrect table: '
+                        + str(data))
+
 # TODO: this is a filler until integrated with Rip
 def readSensorData():
     return 5
 
 def main():
     config = parseConfig()
+    initLogger()
+
     # TODO: uncomment this for production. I don't want random webapps rn.
     #if isMaster(config['serial']):
     #    subprocess.call(['/bin/bash', '-c', './master.sh &'])
@@ -89,11 +123,9 @@ def main():
     conn.message_callback_add(topic, handleStatusRequest)
     conn.subscribe(topic)
 
-    '''
-    # Subscribe for config changes from the webapp
-    conn.message_callback_add('config_change', doConfigChange)
-    conn.subscribe('config_change')
-    '''
+    # Subscribe for updates from the webapp
+    conn.message_callback_add('webapp/updates', handleWebappUpdate)
+    conn.subscribe('webapp/updates')
 
     # Subscribe for each interaction
     global interactions

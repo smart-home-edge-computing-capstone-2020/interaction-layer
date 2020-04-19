@@ -10,6 +10,8 @@ file of the following format:
     serial: unsigned integer, unique
     sensor: boolean, whether node produces sensing data
     device: boolean, whether node actuates physical changes (e.g. light on/off)
+    db_filename: path to where the db file should be (including file name)
+    lob_folder: path to where the logs should be stored (including folder name)
 }
 
 Since the serial number must be unique, this file is not committed, and must be
@@ -89,18 +91,31 @@ The topics used in this system are broken up below by each separate subsystem,
 and whether that subsystem is publishing or subscribing to the topic.
 - webapp
     - publish
-        - config_changes
-        - {node_serial_num}_data_req
+        - webapp/updates
+            - Updates such as changing description of a node or adding a new
+              interaction.
+        - {node_serial_num}/status_request
+            - Ask a node for its status
     - subscribe
-        - webapp
+        - {node_serial_num}/status_response
+            - Get a node's status after publishing to
+              {node_serial_num}/status_request
 - master
     - publish (TODO: Does the master even need to access the broker?)
     - subcribe
 - node
     - publish
         - heartbeats
-        - {node_serial_num}/data_stream (for interactions)
+        - {node_serial_num}/data_stream
+            - For interactions.
+        - {node_serial_num}/status_response
+            - Respond to webapp with this node's status
     - subscribe
         - heartbeats
-        - config_changes - {node_serial_num}/data_request
-        - {node_serial_num}/data_stream (for interactions)
+        - webapp/updates
+            - Updates such as changing description of a node or adding a new
+              interaction.
+        - {node_serial_num}/data_stream
+            - For interactions.
+        - {node_serial_num}/status_request
+            - Webapp is requesting this node's status
