@@ -1,7 +1,10 @@
 from config_parser import parseConfig
+from db_lib import getColNames, getBrokerIp
+import json
 import logging
 import os
 from mqtt_socket import MqttSocket
+import paho.mqtt.publish as publish
 
 def printLogFolder():
     print(parseConfig()['log_folder'])
@@ -38,3 +41,64 @@ def getNodeStatus(serials):
     sock.cleanup()
 
     return result
+
+# @param vals: a dict mapping col name to col value. All columns must be present
+#              excpet for interaction_id. See README.md for columns.
+def addInteraction(vals):
+    # Validate input
+    neededColNames = set(getColNames('interactions'))
+    neededColNames.remove('interaction_id')
+    givenColNames = set(vals.keys())
+    if len(neededColNames.difference(givenColNames)) != 0:
+        raise Exception('Error: addInteraction called with incorrect columns: '
+                        + str(vals.keys()))
+
+    payload = {'type': 'add',
+               'table': 'interactions',
+               'vals': vals}
+    publish.single(topic='webapp/updates',
+                   hostname=getBrokerIp(),
+                   payload=json.dumps(payload))
+
+# @param interaction_id: the interaction to delete
+def deleteInteraction(interaction_id):
+    payload = {'type': 'delete',
+               'table': 'interactions',
+               'interaction_id': interaction_id}
+    publish.single(topic='webapp/updates',
+                   hostname=getBrokerIp(),
+                   payload=json.dumps(payload))
+
+# @param interaction_id: the interaction to delete
+# @param vals: a dict mapping col name to col value. All columns must be present
+#              excpet for interaction_id. See README.md for columns.
+def updateInteraction(interaction_id, vals):
+    # Validate input
+    neededColNames = set(getColNames('interactions'))
+    neededColNames.remove('interaction_id')
+    givenColNames = set(vals.keys())
+    if len(neededColNames.difference(givenColNames)) != 0:
+        raise Exception('Error: updateInteraction called with incorrect columns: '
+                        + str(vals.keys()))
+
+    payload = {'type': 'update',
+               'table': 'interactions',
+               'interaction_id': interaction_id,
+               'vals': vals}
+    publish.single(topic='webapp/updates',
+                   hostname=getBrokerIp(),
+                   payload=json.dumps(payload))
+
+# @param vals: a dict containing only 'display_name' and 'description'
+def updateNode(serial, vals):
+    if len(vals) != 2 or 'display_name' not in vals or 'description' not in vals:
+        raise Exception('Error: updateNode called with incorrect columns: '
+                        + str(vals.keys()))
+
+    payload = {'type': 'update',
+               'table': 'node_data',
+               'serial', serial,
+               'vals': vals}
+    publish.single(topic='webapp/updates',
+                   hostname=getBrokerIp(),
+                   payload=json.dumps(payload))

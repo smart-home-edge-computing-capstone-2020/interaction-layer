@@ -38,11 +38,12 @@ def getColNames(table):
     conn.close()
     return names
 
+# THIS SHOULD NOT BE CALLED EXCEPT AT DB INITIALIZATION!
 # Helper function to add a node to the database.
 # This should be used when setting up the db, not really in production, since
 # we aren't doing new device commissioning.
 # @param vals: a dict mapping column name to value
-def addNode(vals):
+def writeNodeToDb(vals):
     # If node exists, don't re-add
     if len(getNode(vals['serial'])) > 0:
         logging.warning('Trying to insert duplicate node: ' + str(vals))
@@ -93,7 +94,7 @@ def interactionExists(vals):
 
     return len(result) == 1
 
-def deleteInteraction(interaction_id):
+def deleteInteractionFromDb(interaction_id):
     query = 'DELETE FROM interactions WHERE interaction_id IS %d'%interaction_id
     commitSqlQuery(query)
 
@@ -101,7 +102,7 @@ def deleteInteraction(interaction_id):
 # Note that when using in production, if trigger_serial, operator, value,
 # target_serial, and action all match, then teh interaction won't be added.
 # @param vals: a dict mapping column name to value
-def addInteraction(vals):
+def writeInteractionToDb(vals):
     # TODO: should I warn the frontend and the user?
     if interactionExists(vals):
         logging.warning('Trying to insert duplicate interaction: ' + str(vals))
