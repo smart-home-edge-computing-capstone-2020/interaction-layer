@@ -47,7 +47,7 @@ node4 = {
         'is_master' : False,
         'is_broker' : False,
         'is_device' : True,
-        'is_sensor' : False,
+        'is_sensor' : True,
         'is_up' : True,
         'last_up' : int(time.time()),
         'display_name' : 'Coffee Pot',
