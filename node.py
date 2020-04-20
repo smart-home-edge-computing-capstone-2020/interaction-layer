@@ -18,28 +18,16 @@ import time
 '''
 TODO
 integrate with hardware layer
-interactions should be ironed out
-
-heartbeats
 master failover
     - If node that went down is also the master, initiate master failover:
         - if fail, move to next node?
     - assign extra static IP on aws, just for webapp. Whichever node hosts it
       claims the IP
-
-DONE
-nodes should respond statuses
-'config changes' from webapp
-    add (interaction), provide all data
-    delete (interaction), provide interaction id
-    update (interaction): I just call the above 2 in order
-    update (node), provide new description AND name (maybe optional and I search?)
 '''
 
 DATA_PUB_INTERVAL = 1
 MASTER_WAIT_INTERVAL = 1
 
-interactions = dict()
 OPS = {"<"  : operator.lt,
        "<=" : operator.le,
        "==" : operator.eq,
@@ -101,11 +89,12 @@ def initBrokerConnection():
     conn.message_callback_add('webapp/updates', handleWebappUpdate)
     conn.subscribe('webapp/updates')
 
-    # Subscribe for each interaction
-    global interactions
-    interactions = getOwnInteractions()
-    for i in interactions:
-        topic = '%d/data_stream' % i['trigger_serial']
+    # Subscribe to all data streams for interactions
+    for node in getAllNodes():
+        if node['serial'] == config['serial']:
+            continue
+
+        topic = '%d/data_stream' % node['serial']
         conn.message_callback_add(topic, handleInteraction)
         conn.subscribe(topic)
 
@@ -124,11 +113,10 @@ def handleStatusChangeRequest(client, userdata, message):
     # TODO: add rips status thing here
 
 def handleInteraction(client, userdata, message):
-    # TODO: maybe pull this from the message?
-    sourceSerial = int(message.topic.split('/')[0])
     data = json.loads(message.payload.decode('utf-8'))
+    sourceSerial = data['serial']
 
-    for i in interactions:
+    for i in getOwnInteractions():
         if i['trigger_serial'] == sourceSerial:
             operator = OPS[i['operator']]
             destVal = i['value']
@@ -252,7 +240,8 @@ def main():
     topic = '%d/data_stream' % config['serial']
     while True:
         # TODO: change this to Rip's thing
-        data = {'data' : readSensorData()}
+        data = {'data' : readSensorData(),
+                'serial' : config['serial']}
         conn.publish(topic, json.dumps(data))
 
         time.sleep(DATA_PUB_INTERVAL)
