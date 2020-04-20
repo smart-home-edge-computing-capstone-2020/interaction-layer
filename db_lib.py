@@ -91,20 +91,20 @@ def updateNodeInDb(serial, vals):
     commitSqlQuery(query)
 
 # Helper function to check if an interaction exists
-# @param vals: a dict mapping column name to value
+# @param vals: a dict mapping column name to value, all values should be strings.
 def interactionExists(vals):
     query = '''
         SELECT * FROM interactions WHERE
-            (trigger_serial = '%d' AND
+            (trigger_serial = '%s' AND
              operator = '%s' AND
-             value = '%d' AND
-             target_serial = '%d' AND
+             value = '%s' AND
+             target_serial = '%s' AND
              action = '%s')''' % (
-           vals['trigger_serial'],
-           vals['operator'],
-           vals['value'],
-           vals['target_serial'],
-           vals['action'])
+           str(vals['trigger_serial']),
+           str(vals['operator']),
+           str(vals['value']),
+           str(vals['target_serial']),
+           str(vals['action']))
 
     result = getSqlResult(query)
 
@@ -120,8 +120,8 @@ def deleteInteractionFromDb(interaction_id):
 
 # Helper function to add an interaction to the database.
 # Note that when using in production, if trigger_serial, operator, value,
-# target_serial, and action all match, then teh interaction won't be added.
-# @param vals: a dict mapping column name to value
+# target_serial, and action all match, then the interaction won't be added.
+# @param vals: a dict mapping column name to value, all values should be strings.
 def writeInteractionToDb(vals):
     # TODO: should I warn the frontend and the user?
     if interactionExists(vals):
@@ -136,14 +136,14 @@ def writeInteractionToDb(vals):
                                   action,
                                   display_name,
                                   description)
-        VALUES ('%d', '%s', '%d', '%d', '%s', '%s', '%s');''' % (
-           vals['trigger_serial'],
-           vals['operator'],
-           vals['value'],
-           vals['target_serial'],
-           vals['action'],
-           vals['display_name'],
-           vals['description'])
+        VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+           str(vals['trigger_serial']),
+           str(vals['operator']),
+           str(vals['value']),
+           str(vals['target_serial']),
+           str(vals['action']),
+           str(vals['display_name']),
+           str(vals['description']))
 
     commitSqlQuery(query)
 

@@ -255,7 +255,7 @@ def main():
 
     # Init connection to hardware library
     hardwareDescription = parseHardwareDescription()
-    hardwareClient = HardwareLibrary(hardwareDescription, 'localhost:8000')
+    hardwareClient = HardwareLibrary(hardwareDescription, 'http://18.224.96.41/emulator/')
 
     # Init broker connection
     initBrokerConnection()

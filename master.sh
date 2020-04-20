@@ -17,7 +17,6 @@ do
 	if [[ !($(pgrep flask)) ]]; then
         echo 'backend dead, restarting' >> $LOG_FOLDER/master.log
 		cd ../ecp-webapp/flask-backend
-		source my_venv/bin/activate
 		FLASK_APP=api.py FLASK_ENV=development flask run &>> backend.log &
 		cd ../../interaction-layer
 	fi
