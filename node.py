@@ -129,6 +129,12 @@ def handleInteraction(client, userdata, message):
     data = json.loads(message.payload.decode('utf-8'))
     sourceSerial = data['serial']
 
+    # Don't make an actuation change if this node is not a device
+    if not isDevice(parseConfig()['serial']):
+        logging.info('node with serial %d triggered interaction, but is not device node'
+                     % parseConfig()['serial'])
+        return
+
     for i in getOwnInteractions():
         if i['trigger_serial'] == sourceSerial:
             operator = OPS[i['operator']]
