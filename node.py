@@ -10,10 +10,10 @@ import subprocess
 import time
 
 # Since HardwareLibrary.py in diff folder, have to add to path before import
-#import sys
+import sys
 # insert at 1, 0 is the script path (or '' in REPL)
-#sys.path.insert(1, '../hardware-emulator/hardware_library')
-#from HardwareLibrary import HardwareLibrary
+sys.path.insert(1, '../hardware-emulator/hardware_library')
+from HardwareLibrary import HardwareLibrary
 
 '''
 TODO
@@ -39,6 +39,12 @@ OPS = {"<"  : operator.lt,
 # Make global so that handler functions can also access
 conn = None
 hardwareClient = None
+
+# TODO: This is wrong - nodes can have more than one hardware
+def getHardwareName():
+    hardwareDescription = parseHardwareDescription()
+    hardware = json.loads(hardwareDescription)['hardware'].keys()
+    return list(hardware)[0]
 
 # Should be called after you're certain that the ip address for the node marked
 # as broker in the db is correct.
@@ -101,16 +107,20 @@ def initBrokerConnection():
 # Used when webapps requests this node's status
 def handleStatusRequest(client, userdata, message):
     # Ignore input, just send back the status.
-    global conn
-    # TODO: add Rips status here
-    status = json.dumps({'status' : 'on'})
+    global conn, hardwareClient
+
+    statusValue = hardwareClient.poll(getHardwareName())
+    status = json.dumps({'status' : str(statusValue)})
     serial = parseConfig()['serial']
     conn.publish('%d/status_response' % serial, status)
 
 def handleStatusChangeRequest(client, userdata, message):
     data = json.loads(message.payload.decode('utf-8'))
+    newValue = data['status']
     logging.info('Status change requested. New status: %s' % data['status'])
-    # TODO: add rips status thing here
+
+    global hardwareClient
+    hardwareClient.changeValue(getHardwareName(), newValue)
 
 def handleInteraction(client, userdata, message):
     data = json.loads(message.payload.decode('utf-8'))
@@ -123,8 +133,11 @@ def handleInteraction(client, userdata, message):
             srcVal = data['data']
 
             if operator(srcVal, destVal):
-                # TODO: add rips thing here
-                print(i['action'])
+                global hardwareClient
+                hardwareClient.changeValue(getHardwareName(), i['action'])
+
+                logging.info('interaction with id %d triggered' %
+                             i['interaction_id'])
 
 # TODO: need to actually manage the subscriptions subbed to... and the global
 #       interactions dict
@@ -216,10 +229,6 @@ def handleHeartbeats(client, userdata, message):
     # However, if broker really died, then handleDisconnect will be triggered to
     # take care of the failover.
 
-# TODO: this is a filler until integrated with Rip
-def readSensorData():
-    return 5
-
 def main():
     initLogger()
     config = parseConfig()
@@ -231,7 +240,8 @@ def main():
     global conn, hardwareClient
 
     # Init connection to hardware library
-    #hardwareClient = HardwareLibrary(parseHardwareDescription(), "")
+    hardwareDescription = parseHardwareDescription()
+    hardwareClient = HardwareLibrary(hardwareDescription, 'localhost:8000')
 
     # Init broker connection
     initBrokerConnection()
@@ -239,8 +249,9 @@ def main():
     # Publish sensor data for other device's interactions
     topic = '%d/data_stream' % config['serial']
     while True:
-        # TODO: change this to Rip's thing
-        data = {'data' : readSensorData(),
+        # TODO: this should eventually be generalized / propagated through the
+        #       code to support multiple hardwares per node.
+        data = {'data' : hardwareClient.poll(getHardwareName()),
                 'serial' : config['serial']}
         conn.publish(topic, json.dumps(data))
 
