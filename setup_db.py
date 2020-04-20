@@ -1,4 +1,4 @@
-from help_lib import parseConfig
+from config_parser import parseConfig
 import os
 import sqlite3
 
