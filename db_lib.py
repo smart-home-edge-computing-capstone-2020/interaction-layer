@@ -266,6 +266,9 @@ def getInteraction(interaction_id):
 def isDevice(serial):
     return getBoolCol(serial, 'is_device')
 
+def isSensor(serial):
+    return getBoolCol(serial, 'is_sensor')
+
 def isMaster(serial=None):
     if serial is None:
         serial = parseConfig()['serial']

@@ -264,11 +264,12 @@ def main():
     # Publish sensor data for other device's interactions
     topic = '%d/data_stream' % config['serial']
     while True:
-        # TODO: this should eventually be generalized / propagated through the
-        #       code to support multiple hardwares per node.
-        data = {'data' : hardwareClient.pollValue(getHardwareName()),
-                'serial' : config['serial']}
-        conn.publish(topic, json.dumps(data))
+        if isSensor(config['serial']):
+            # TODO: this should eventually be generalized / propagated through the
+            #       code to support multiple hardwares per node.
+            data = {'data' : hardwareClient.pollValue(getHardwareName()),
+                    'serial' : config['serial']}
+            conn.publish(topic, json.dumps(data))
 
         time.sleep(DATA_PUB_INTERVAL)
 

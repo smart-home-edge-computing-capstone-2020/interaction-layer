@@ -1,8 +1,8 @@
-from db_lib import writeNodeToDb, writeInteractionToDb
+from db_lib import writeNodeToDb
 import time
 
-# Nodes
-n1 = {
+# This file is meant to facilitiate loading the db with the initial node data
+node1 = {
         'serial' : 1,
         'ip_address' : '34.233.41.49',
         'is_master' : True,
@@ -15,7 +15,7 @@ n1 = {
         'description' : 'Da first of da nodes'
 }
 
-n2 = {
+node2 = {
         'serial' : 2,
         'ip_address' : '18.208.23.252',
         'is_master' : False,
@@ -28,7 +28,7 @@ n2 = {
         'description' : 'Da second of da nodes'
 }
 
-n3 = {
+node3 = {
         'serial' : 3,
         'ip_address' : '3.213.43.206',
         'is_master' : False,
@@ -41,31 +41,6 @@ n3 = {
         'description' : 'Da third of da nodes'
 }
 
-writeNodeToDb(n1)
-writeNodeToDb(n2)
-writeNodeToDb(n3)
-
-# Interactions
-
-i1 = {
-        'trigger_serial' : 2,
-        'operator' : '<',
-        'value' : 5,
-        'target_serial' : 1,
-        'action' : 15213.0,
-        'display_name' : 'Interaction 2',
-        'description' : 'Da first of da interactions'
-}
-
-i2 = {
-        'trigger_serial' : 2,
-        'operator' : '<',
-        'value' : 1,
-        'target_serial' : 1,
-        'action' : -1234.0,
-        'display_name' : 'Interaction 1',
-        'description' : 'Da second of da interactions'
-}
-
-writeInteractionToDb(i1)
-writeInteractionToDb(i2)
+writeNodeToDb(node1)
+writeNodeToDb(node2)
+writeNodeToDb(node3)
