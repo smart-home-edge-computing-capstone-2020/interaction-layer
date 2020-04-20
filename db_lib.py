@@ -269,6 +269,9 @@ def isDevice(serial):
 def isSensor(serial):
     return getBoolCol(serial, 'is_sensor')
 
+def isUp(serial):
+    return getBoolCol(serial, 'is_up')
+
 def isMaster(serial=None):
     if serial is None:
         serial = parseConfig()['serial']

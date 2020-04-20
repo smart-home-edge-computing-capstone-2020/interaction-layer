@@ -32,6 +32,10 @@ def getNodeStatus(serials):
     result = dict()
 
     for s in serials:
+        if not isUp(s):
+            result[s] = {'status' : '-1'}
+            continue
+
         listenTopic = '%d/status_response' % s
         sock.setListen(listenTopic)
 
