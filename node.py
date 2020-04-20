@@ -215,7 +215,7 @@ def getNewMasterSerial():
 # @note: if in the future the broker is separated from the master node, this
 #        will need to be changed.
 def handleDisconnect(client, userdata, rc):
-    logging.info('broker has died with return code %d' % rc)
+    logging.info('Broker has died with return code %d' % rc)
     oldMaster = getMasterSerial()
 
     # Make sure node is marked as dead
@@ -232,6 +232,7 @@ def handleDisconnect(client, userdata, rc):
 
     if newMaster == parseConfig()['serial']:
         # Promote self
+        logging.info('Promoting self to master')
         startMasterProc()
 
     # Connect to new master
