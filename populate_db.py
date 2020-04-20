@@ -52,7 +52,7 @@ i1 = {
         'operator' : '<',
         'value' : 5,
         'target_serial' : 1,
-        'action' : 'on',
+        'action' : 15213.0,
         'display_name' : 'Interaction 2',
         'description' : 'Da first of da interactions'
 }
@@ -62,7 +62,7 @@ i2 = {
         'operator' : '<',
         'value' : 1,
         'target_serial' : 1,
-        'action' : 'off',
+        'action' : -1234.0,
         'display_name' : 'Interaction 1',
         'description' : 'Da second of da interactions'
 }

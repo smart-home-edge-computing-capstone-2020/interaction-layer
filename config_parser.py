@@ -1,3 +1,4 @@
+import json
 import os
 
 # Use expanduser to expand ~ to the user's home directory
@@ -58,3 +59,14 @@ def parseHardwareDescription():
             result += line
 
     return result
+
+# TODO: This is wrong - nodes can have more than one hardware
+def getHardwareName():
+    hardwareDescription = parseHardwareDescription()
+    hardware = json.loads(hardwareDescription)['hardware'].keys()
+    return list(hardware)[0]
+
+def getHardwareType():
+    name = getHardwareName()
+    hd = parseHardwareDescription()
+    return json.loads(hd)['hardware'][name]['valueType']

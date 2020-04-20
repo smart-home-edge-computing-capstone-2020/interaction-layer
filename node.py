@@ -40,12 +40,6 @@ OPS = {"<"  : operator.lt,
 conn = None
 hardwareClient = None
 
-# TODO: This is wrong - nodes can have more than one hardware
-def getHardwareName():
-    hardwareDescription = parseHardwareDescription()
-    hardware = json.loads(hardwareDescription)['hardware'].keys()
-    return list(hardware)[0]
-
 # Should be called after you're certain that the ip address for the node marked
 # as broker in the db is correct.
 def initBrokerConnection():
@@ -109,7 +103,7 @@ def handleStatusRequest(client, userdata, message):
     # Ignore input, just send back the status.
     global conn, hardwareClient
 
-    statusValue = hardwareClient.poll(getHardwareName())
+    statusValue = hardwareClient.pollValue(getHardwareName())
     status = json.dumps({'status' : str(statusValue)})
     serial = parseConfig()['serial']
     conn.publish('%d/status_response' % serial, status)
@@ -251,7 +245,7 @@ def main():
     while True:
         # TODO: this should eventually be generalized / propagated through the
         #       code to support multiple hardwares per node.
-        data = {'data' : hardwareClient.poll(getHardwareName()),
+        data = {'data' : hardwareClient.pollValue(getHardwareName()),
                 'serial' : config['serial']}
         conn.publish(topic, json.dumps(data))
 
