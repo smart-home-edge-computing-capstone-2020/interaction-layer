@@ -45,7 +45,7 @@ def getColNames(table):
 # @param vals: a dict mapping column name to value
 def writeNodeToDb(vals):
     # If node exists, don't re-add
-    if len(getNode(vals['serial'])) > 0:
+    if getNode(vals['serial']) is not None:
         logging.warning('Trying to insert duplicate node: ' + str(vals))
         return
 
@@ -228,9 +228,13 @@ def getAllNodes():
     query = 'SELECT * FROM node_data'
     return sqlResultToDict('node_data', query)
 
+# Returns None if serial not in db, else a dict of colname:value
 def getNode(serial):
     query = 'SELECT * FROM node_data WHERE serial IS %d' % serial
-    return sqlResultToDict('node_data', query)[0]
+    result = sqlResultToDict('node_data', query)
+    if len(result) == 0:
+        return None
+    return result[0]
 
 def getAllInteractions():
     query = 'SELECT * FROM interactions'
