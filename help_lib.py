@@ -44,6 +44,7 @@ def getNodeStatus(serials):
 
         # Publish empty message to trigger response from node
         requestTopic = '%d/status_request' % s
+        logging.info('about to request')
         status = sock.getResponse(requestTopic, '{}')
 
         result[s] = status

@@ -191,6 +191,8 @@ def handleWebappUpdate(client, userdata, message):
                         + str(data))
 
 def startMasterProc():
+    logging.info('Starting master proc')
+    print('Starting master proc')
     subprocess.call(['/bin/bash', '-c', './master.sh &'])
     # Give master time to start broker
     time.sleep(MASTER_WAIT_INTERVAL)
