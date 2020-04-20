@@ -110,11 +110,20 @@ def handleStatusRequest(client, userdata, message):
 
 def handleStatusChangeRequest(client, userdata, message):
     data = json.loads(message.payload.decode('utf-8'))
-    newValue = data['status']
+
+    # Cast to correct type
+    newVal = data['status']
+    valType = getHardwareType()
+    if valType == 'float':
+        newVal = float(newVal)
+    elif valType == 'boolean':
+        newVal = bool(newVal)
+    elif valType == 'integer':
+        newVal = int(newVal)
     logging.info('Status change requested. New status: %s' % data['status'])
 
     global hardwareClient
-    hardwareClient.changeValue(getHardwareName(), newValue)
+    hardwareClient.changeValue(getHardwareName(), newVal)
 
 def handleInteraction(client, userdata, message):
     data = json.loads(message.payload.decode('utf-8'))
@@ -128,7 +137,18 @@ def handleInteraction(client, userdata, message):
 
             if operator(srcVal, destVal):
                 global hardwareClient
-                hardwareClient.changeValue(getHardwareName(), i['action'])
+
+                # Cast to correct type
+                newVal = i['action']
+                valType = getHardwareType()
+                if valType == 'float':
+                    newVal = float(newVal)
+                elif valType == 'boolean':
+                    newVal = bool(newVal)
+                elif valType == 'integer':
+                    newVal = int(newVal)
+
+                hardwareClient.changeValue(getHardwareName(), newVal)
 
                 logging.info('interaction with id %d triggered' %
                              i['interaction_id'])
