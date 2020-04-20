@@ -54,6 +54,9 @@ def main():
     # Save changes
     conn.commit()
     conn.close()
+    
+    # Populate the db
+    os.system('python populate_db.py')
 
 # Run as a script
 if __name__ == '__main__':

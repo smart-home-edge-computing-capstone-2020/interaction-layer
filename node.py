@@ -221,10 +221,11 @@ def handleDisconnect(client, userdata, rc):
     setBoolCol(oldMaster, 'is_broker', False)
 
     newMaster = getNewMasterSerial()
+    setBoolCol(newMaster, 'is_master', True)
+    setBoolCol(newMaster, 'is_broker', True)
+
     if newMaster == parseConfig()['serial']:
         # Promote self
-        setBoolCol(newMaster, 'is_master', True)
-        setBoolCol(newMaster, 'is_broker', True)
         startMasterProc()
 
     # Connect to new master
