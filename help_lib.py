@@ -7,7 +7,8 @@ from mqtt_socket import MqttSocket
 import paho.mqtt.publish as publish
 
 def printLogFolder():
-    print(parseConfig()['log_folder'])
+    log_folder = parseConfig()['log_folder']
+    print(os.path.expanduser(log_folder))
 
 def initLogger():
     log_folder = os.path.expanduser(parseConfig()['log_folder'])
