@@ -12,13 +12,5 @@ sudo apt-get install python-pip
 # Install the broker
 sudo apt-get install mosquitto
 
-# Set up python virtual environment
-python3 -m venv my_venv
-source my_venv/bin/activate
-
-# Install requirements
-pip install --upgrade pip
-pip install -r requirements.txt
-
 # Set up the database
 python3 setup_db.py
