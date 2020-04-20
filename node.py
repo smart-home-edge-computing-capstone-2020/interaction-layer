@@ -52,6 +52,7 @@ def initBrokerConnection():
     # prints out info about clients based on the id
     if conn is not None:
         conn.loop_stop()
+        print('reinitialising conn')
         conn = reinitialise()
         conn.reinitialise(client_id='node%d' % config['serial'],
                           clean_session=True)
