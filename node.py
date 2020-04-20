@@ -70,14 +70,14 @@ def initBrokerConnection():
     # clean_session=True means every time we connect, delete old data.
     # client_id being something meaningful is useful for debugging, since broker
     # prints out info about clients based on the id
-    # TODO: uncomment this after done manual testing on same device
-    #conn = mqtt.Client(client_id='node%d' % config['serial'],
-    #                  clean_session=True)
     if conn is not None:
         conn.loop_stop()
         conn = reinitialise()
+        conn.reinitialise(client_id='node%d' % config['serial'],
+                          clean_session=True)
     else:
-        conn = mqtt.Client()
+        conn = mqtt.Client(client_id='node%d' % config['serial'],
+                           clean_session=True)
 
     # Set a will. If node dies, broker will distribute payload.
     will = {'serial':config['serial']}
@@ -206,8 +206,7 @@ def handleDisconnect(client, userdata, rc):
     newMaster = getNewMasterSerial()
     if newMaster == parseConfig['serial']:
         # Promote self
-        #startMasterProc()
-        pass
+        startMasterProc()
 
     # Connect to new master
     initBrokerConnection()
@@ -233,8 +232,8 @@ def main():
     initLogger()
 
     # TODO: uncomment this for production. I don't want random webapps rn.
-    #if isMaster(config['serial']):
-    #   startMasterProc()
+    if isMaster(config['serial']):
+       startMasterProc()
 
     global conn, hardwareClient
 
