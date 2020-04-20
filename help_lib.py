@@ -45,6 +45,15 @@ def getNodeStatus(serials):
 
     return result
 
+# @param serial: serial (int) number of the device to set the status of
+#                statuses of.
+# @param status: the status, as a string.
+def setNodeStatus(serial, status):
+    payload = {'status': status}
+    publish.single(topic='%d/status_change_request',
+                   hostname=getBrokerIp(),
+                   payload=json.dumps(payload))
+
 # @param vals: a dict mapping col name to col value. All columns must be present
 #              excpet for interaction_id. See README.md for columns.
 def addInteraction(vals):

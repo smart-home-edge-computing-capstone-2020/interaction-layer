@@ -22,16 +22,8 @@ interactions should be ironed out
 
 heartbeats
 master failover
-    - look into nodes adding wills to a heartbeats topic, if they randomly
-      disconnect it'll get sent to everyone.
-        conn.will_set(topic='heartbeats', payload='node 1 ded', qos=2)
-        call before connect, idk why
-    - define an on_disconnect for the client? so if broker goes down can promote
-    - If node goes down, update in the db
     - If node that went down is also the master, initiate master failover:
-        - If self, promote
-        - try to connect to new broker
-        - todo - if fail, move to next node?
+        - if fail, move to next node?
     - assign extra static IP on aws, just for webapp. Whichever node hosts it
       claims the IP
 
@@ -100,6 +92,11 @@ def initBrokerConnection():
     conn.message_callback_add(topic, handleStatusRequest)
     conn.subscribe(topic)
 
+    # Subscribe for status change requests from the webapp
+    topic = '%d/status_change_request' % config['serial']
+    conn.message_callback_add(topic, handleStatusChangeRequest)
+    conn.subscribe(topic)
+
     # Subscribe for updates from the webapp
     conn.message_callback_add('webapp/updates', handleWebappUpdate)
     conn.subscribe('webapp/updates')
@@ -120,6 +117,11 @@ def handleStatusRequest(client, userdata, message):
     status = json.dumps({'status' : 'on'})
     serial = parseConfig()['serial']
     conn.publish('%d/status_response' % serial, status)
+
+def handleStatusChangeRequest(client, userdata, messate):
+    data = json.loads(message.payload.decode('utf-8'))
+    logging.info('Status change requested. New status: %s' % data['status'])
+    # TODO: add rips status thing here
 
 def handleInteraction(client, userdata, message):
     # TODO: maybe pull this from the message?
