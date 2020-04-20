@@ -27,6 +27,8 @@ def main():
             ip_address text,
             is_master integer,
             is_broker integer,
+            is_device integer,
+            is_sensor integer,
             is_up integer,
             last_up integer,
             display_name text,

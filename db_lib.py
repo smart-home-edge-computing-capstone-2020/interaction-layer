@@ -54,15 +54,19 @@ def writeNodeToDb(vals):
                                ip_address,
                                is_master,
                                is_broker,
+                               is_device,
+                               is_sensor,
                                is_up,
                                last_up,
                                display_name,
                                description)
-        VALUES ('%d', '%s', '%d', '%d', '%d', '%d', '%s', '%s');''' % (
+        VALUES ('%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s');''' % (
            vals['serial'],
            vals['ip_address'],
            vals['is_master'],
            vals['is_broker'],
+           vals['is_device'],
+           vals['is_sensor'],
            vals['is_up'],
            vals['last_up'],
            vals['display_name'],
@@ -258,6 +262,9 @@ def getInteraction(interaction_id):
         return None
 
     return result[0]
+
+def isDevice(serial):
+    return getBoolCol(serial, 'is_device')
 
 def isMaster(serial=None):
     if serial is None:

@@ -8,10 +8,8 @@ Note that the master and node processes require the existence of a CONFIG
 file of the following format:
 {
     serial: unsigned integer, unique
-    sensor: boolean, whether node produces sensing data
-    device: boolean, whether node actuates physical changes (e.g. light on/off)
     db_filename: path to where the db file should be (including file name)
-    lob_folder: path to where the logs should be stored (including folder name)
+    log_folder: path to where the logs should be stored (including folder name)
 }
 
 Since the serial number must be unique, this file is not committed, and must be
@@ -56,9 +54,9 @@ As a result, each node's database will have the following tables:
 | int, seconds since epoch | int   |
 
 #### node\_data
-| serial (key)     | ip\_address | is\_master | is\_broker | is\_up | last\_up                 | display\_name | description |
-| :-------------:  | :---------: | :--------: | :--------: | :----: | :----------------------: | :-----------: | :---------: |
-| int              | text        | bool       | bool       | bool   | int, seconds since epoch | text          | text        |
+| serial (key)     | ip\_address | is\_master | is\_broker | is\_device | is\sensor | is\_up | last\_up                 | display\_name | description |
+| :-------------:  | :---------: | :--------: | :--------: | :--------: | :-------: | :----: | :----------------------: | :-----------: | :---------: |
+| int              | text        | bool       | bool       | bool       | bool      | bool   | int, seconds since epoch | text          | text        |
 
 #### interactions
 | trigger\_serial | operator | value | target\_serial | action | display\_name | description |
