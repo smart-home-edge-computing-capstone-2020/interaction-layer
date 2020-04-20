@@ -1,5 +1,5 @@
 from config_parser import parseConfig
-from db_lib import getColNames, getBrokerIp
+from db_lib import getColNames, getBrokerIp, isUp
 import json
 import logging
 import os
@@ -16,7 +16,7 @@ def initLogger():
     os.system('mkdir %s' % log_folder)
     logging.basicConfig(
         filename=log_file,
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -26,14 +26,17 @@ def initLogger():
 # @return: a dictionary mapping key = serial to value = a dict
 #          the inner dict is of the form {'status' : str}
 def getNodeStatus(serials):
+    initLogger()
     # TODO: Error checking. what if broker not up?
     sock = MqttSocket()
 
     result = dict()
 
     for s in serials:
+        logging.info('%d' %s)
         if not isUp(s):
             result[s] = {'status' : '-1'}
+            logging.info('dead')
             continue
 
         listenTopic = '%d/status_response' % s
@@ -46,6 +49,7 @@ def getNodeStatus(serials):
         result[s] = status
 
     sock.cleanup()
+    logging.info('result: %s' % str(result))
 
     return result
 
