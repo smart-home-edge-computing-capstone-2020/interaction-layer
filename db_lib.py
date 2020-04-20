@@ -224,11 +224,17 @@ def getOwnInteractions():
     query ='''SELECT * FROM interactions WHERE target_serial IS %d''' % serial
     return sqlResultToDict('interactions', query)
 
+# @return: a list of dictionaries. Each dict in the list is a node. The key is
+#          the column name and the val is the column value for that node.
+#
+#          See the table node_data in README.md for schema,  col names, and data
+#          types.
 def getAllNodes():
     query = 'SELECT * FROM node_data'
     return sqlResultToDict('node_data', query)
 
-# Returns None if serial not in db, else a dict of colname:value
+# @return: None if serial not in db, else a single dictionary as described in
+#          getAllNodes.
 def getNode(serial):
     query = 'SELECT * FROM node_data WHERE serial IS %d' % serial
     result = sqlResultToDict('node_data', query)
@@ -236,10 +242,12 @@ def getNode(serial):
         return None
     return result[0]
 
+# @return: same as getAllNodes, but for the interactions table.
 def getAllInteractions():
     query = 'SELECT * FROM interactions'
     return sqlResultToDict('interactions', query)
 
+# @return: same as getNode, but for the interactions table.
 def getInteraction(interaction_id):
     query = 'SELECT * FROM interactions WHERE interaction_id IS %d' % interaction_id
     result = sqlResultToDict('interactions', query)

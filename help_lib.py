@@ -22,6 +22,8 @@ def initLogger():
 # Note: This function only works when the broker and nodes are up
 # @param serial: a list of integers representing the serial numbers to get the
 #                statuses of.
+# @return: a dictionary mapping key = serial to value = a dict
+#          the inner dict is of the form {'status' : str}
 def getNodeStatus(serials):
     # TODO: Error checking. what if broker not up?
     sock = MqttSocket()
