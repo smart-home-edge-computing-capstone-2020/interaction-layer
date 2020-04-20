@@ -183,7 +183,7 @@ def getNewMasterSerial():
     '''
     result = getSqlResult(query)
     if len(result) == 0:
-        return parseConfig['serial']
+        return parseConfig()['serial']
 
     return result[0][0]
 
@@ -204,8 +204,10 @@ def handleDisconnect(client, userdata, rc):
     setBoolCol(oldMaster, 'is_broker', False)
 
     newMaster = getNewMasterSerial()
-    if newMaster == parseConfig['serial']:
+    if newMaster == parseConfig()['serial']:
         # Promote self
+        setBoolCol(newMaster, 'is_master', True)
+        setBoolCol(newMaster, 'is_broker', True)
         startMasterProc()
 
     # Connect to new master
