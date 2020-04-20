@@ -10,10 +10,10 @@ import subprocess
 import time
 
 # Since HardwareLibrary.py in diff folder, have to add to path before import
-import sys
+#import sys
 # insert at 1, 0 is the script path (or '' in REPL)
-sys.path.insert(1, '../hardware-emulator/hardware_library')
-from HardwareLibrary import HardwareLibrary
+#sys.path.insert(1, '../hardware-emulator/hardware_library')
+#from HardwareLibrary import HardwareLibrary
 
 '''
 TODO
@@ -230,6 +230,7 @@ def readSensorData():
 
 def main():
     initLogger()
+    config = parseConfig()
 
     # TODO: uncomment this for production. I don't want random webapps rn.
     if isMaster(config['serial']):
@@ -244,7 +245,7 @@ def main():
     initBrokerConnection()
 
     # Publish sensor data for other device's interactions
-    topic = '%d/data_stream' % parseConfig['serial']
+    topic = '%d/data_stream' % config['serial']
     while True:
         # TODO: change this to Rip's thing
         data = {'data' : readSensorData()}
