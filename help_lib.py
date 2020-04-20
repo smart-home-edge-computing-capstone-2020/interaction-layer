@@ -50,7 +50,7 @@ def getNodeStatus(serials):
 # @param status: the status, as a string.
 def setNodeStatus(serial, status):
     payload = {'status': status}
-    publish.single(topic='%d/status_change_request',
+    publish.single(topic='%d/status_change_request' % serial,
                    hostname=getBrokerIp(),
                    payload=json.dumps(payload))
 

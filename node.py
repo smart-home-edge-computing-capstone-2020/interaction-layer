@@ -118,7 +118,7 @@ def handleStatusRequest(client, userdata, message):
     serial = parseConfig()['serial']
     conn.publish('%d/status_response' % serial, status)
 
-def handleStatusChangeRequest(client, userdata, messate):
+def handleStatusChangeRequest(client, userdata, message):
     data = json.loads(message.payload.decode('utf-8'))
     logging.info('Status change requested. New status: %s' % data['status'])
     # TODO: add rips status thing here
