@@ -18,6 +18,7 @@ from db_lib import getBrokerIp
 class MqttSocket:
 
     RETRY_TIME = 0.25
+    RETRY_LIMIT = int(1.5 // RETRY_TIME)
 
     # Private callback used internally
     def _oneTimeCallback(self, client, userdata, message):
@@ -65,8 +66,10 @@ class MqttSocket:
 
         self.conn.publish(requestTopic, requestMsg)
 
-        while self.returnVal is None:
+        retries = 0
+        while self.returnVal is None and retries < RETRY_LIMIT:
             time.sleep(self.RETRY_TIME)
+            retries += 1
 
         result = self.returnVal
         self.returnVal = None

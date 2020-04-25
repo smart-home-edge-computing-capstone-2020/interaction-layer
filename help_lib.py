@@ -47,7 +47,7 @@ def getNodeStatus(serials):
         logging.info('about to request')
         status = sock.getResponse(requestTopic, '{}')
 
-        result[s] = status
+        result[s] = '-1' if status is None else status
 
     sock.cleanup()
     logging.info('result: %s' % str(result))
