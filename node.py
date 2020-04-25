@@ -90,14 +90,15 @@ def initBrokerConnection():
     conn.message_callback_add('webapp/updates', handleWebappUpdate)
     conn.subscribe('webapp/updates')
 
-    # Subscribe to all data streams for interactions
-    for node in getAllNodes():
-        if node['serial'] == config['serial']:
-            continue
+    # Subscribe to all data streams for interactions if a device node
+    if isDevice(config['serial']):
+        for node in getAllNodes():
+            if node['serial'] == config['serial']:
+                continue
 
-        topic = '%d/data_stream' % node['serial']
-        conn.message_callback_add(topic, handleInteraction)
-        conn.subscribe(topic)
+            topic = '%d/data_stream' % node['serial']
+            conn.message_callback_add(topic, handleInteraction)
+            conn.subscribe(topic)
 
 # Used when webapps requests this node's status
 def handleStatusRequest(client, userdata, message):
