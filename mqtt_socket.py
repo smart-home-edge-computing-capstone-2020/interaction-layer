@@ -71,6 +71,9 @@ class MqttSocket:
             time.sleep(self.RETRY_TIME)
             retries += 1
 
+        if retries >= RETRY_LIMIT:
+            logging.warning('Node not responding, retries exceeded')
+
         result = self.returnVal
         self.returnVal = None
 

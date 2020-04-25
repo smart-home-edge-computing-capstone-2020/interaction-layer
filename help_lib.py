@@ -33,10 +33,10 @@ def getNodeStatus(serials):
     result = dict()
 
     for s in serials:
-        logging.info('%d' %s)
+        logging.info('Webapp requested status of node %d' % s)
         if not isUp(s):
             result[s] = {'status' : '-1'}
-            logging.info('dead')
+            logging.info('Node %d is dead, not requesting' % s)
             continue
 
         listenTopic = '%d/status_response' % s
@@ -44,13 +44,13 @@ def getNodeStatus(serials):
 
         # Publish empty message to trigger response from node
         requestTopic = '%d/status_request' % s
-        logging.info('about to request')
+        logging.info('Node %d is up, sending status request' % s)
         status = sock.getResponse(requestTopic, '{}')
 
         result[s] = '-1' if status is None else status
 
     sock.cleanup()
-    logging.info('result: %s' % str(result))
+    logging.info('Status request result: %s' % str(result))
 
     return result
 
