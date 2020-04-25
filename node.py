@@ -27,6 +27,7 @@ master failover
 
 DATA_PUB_INTERVAL = 1
 MASTER_WAIT_INTERVAL = 1
+HARDWARE_EMULATOR_IP = 'http://3.21.193.233/emulator/'
 
 OPS = {"<"  : operator.lt,
        "<=" : operator.le,
@@ -267,7 +268,7 @@ def main():
 
     # Init connection to hardware library
     hardwareDescription = parseHardwareDescription()
-    hardwareClient = HardwareLibrary(hardwareDescription, 'http://3.21.193.233/emulator/')
+    hardwareClient = HardwareLibrary(hardwareDescription, HARDWARE_EMULATOR_IP)
 
     # Init broker connection
     initBrokerConnection()
