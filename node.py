@@ -156,6 +156,7 @@ def handleInteraction(client, userdata, message):
                 elif valType == 'integer':
                     newVal = int(newVal)
 
+                print('%f: acting on mid %d' % (time.time(), data['mid']))
                 hardwareClient.changeValue(getHardwareName(), newVal)
 
                 logging.info('interaction with id %d triggered' %
@@ -274,13 +275,17 @@ def main():
 
     # Publish sensor data for other device's interactions
     topic = '%d/data_stream' % config['serial']
+    mid = 0
     while True:
         if isSensor(config['serial']):
             # TODO: this should eventually be generalized / propagated through the
             #       code to support multiple hardwares per node.
             data = {'data' : hardwareClient.pollValue(getHardwareName()),
-                    'serial' : config['serial']}
+                    'serial' : config['serial'],
+                    'mid' : mid}
+            print('%f: publish mid %d' % (time.time(), mid))
             conn.publish(topic, json.dumps(data))
+            mid += 1
 
         time.sleep(DATA_PUB_INTERVAL)
 
