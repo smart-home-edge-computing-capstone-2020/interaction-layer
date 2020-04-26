@@ -12,5 +12,5 @@ This directory includes the following files:
 
 The data in this folder was collected by running 2 nodes, 1 master and one
 other. Once the master was up and running, I started thefailover\_timer, then
-killed the master node. The final averaged webapp failover time was __8.6683__
-seconds.
+killed the master node. The final averaged webapp failover time was __8.6683
+seconds__.
