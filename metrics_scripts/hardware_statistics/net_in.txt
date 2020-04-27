@@ -1,0 +1,10 @@
+Thousand bytes
+node1: 90
+node2: 40
+node3: 92
+node4: 105
+node5: 102
+
+average master: 90
+non-master: 84.75
+non-master without node2: 99.667

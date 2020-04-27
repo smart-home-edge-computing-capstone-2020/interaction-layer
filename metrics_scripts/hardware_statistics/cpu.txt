@@ -1,0 +1,9 @@
+node1: 2
+node2: .375
+node3: .9
+node4: 1.06
+node5: 1.12
+
+average master: 2%
+non-master: 0.865%
+non-master without node2: 1.028%

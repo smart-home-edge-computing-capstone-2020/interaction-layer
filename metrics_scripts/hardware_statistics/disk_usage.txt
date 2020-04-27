@@ -1,0 +1,8 @@
+The following data is based on running `df -hT /dev/xvda1` on the nodes, which
+according to aws tells you how much disk space you are currently using.
+
+New nodes, upon creation, have 1.1 GB of memory used.
+
+Production nodes have 2.6 GB of memory used.
+
+Therefore our footprint is 1.5 GB
