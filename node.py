@@ -156,7 +156,7 @@ def handleInteraction(client, userdata, message):
                 elif valType == 'integer':
                     newVal = int(newVal)
 
-                otherNode = getNode(i['source_serial'])
+                otherNode = getNode(i['target_serial'])
                 print('Interaction triggered by sensor \'%s\'. Changing data to \'%d\''
                       % (otherNode['display_name'], newVal))
                 hardwareClient.changeValue(getHardwareName(), newVal)
