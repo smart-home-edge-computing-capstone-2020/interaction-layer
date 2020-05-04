@@ -53,7 +53,7 @@ def initBrokerConnection():
     # prints out info about clients based on the id
     if conn is not None:
         conn.loop_stop()
-        print('reinitialising conn')
+        print('Connecting to new broker')
         conn.reinitialise(client_id='node%d' % config['serial'],
                           clean_session=True)
     else:
@@ -156,6 +156,9 @@ def handleInteraction(client, userdata, message):
                 elif valType == 'integer':
                     newVal = int(newVal)
 
+                otherNode = getNode(i['source_serial'])
+                print('Interaction triggered by sensor \'%s\'. Changing data to \'%d\''
+                      % (otherNode['display_name'], newVal))
                 hardwareClient.changeValue(getHardwareName(), newVal)
 
                 logging.info('interaction with id %d triggered' %
@@ -193,8 +196,8 @@ def handleWebappUpdate(client, userdata, message):
                         + str(data))
 
 def startMasterProc():
-    logging.info('Starting master proc')
-    print('Starting master proc')
+    logging.info('Starting master process')
+    print('Starting master process')
     subprocess.call(['/bin/bash', '-c', './master.sh &'])
     # Give master time to start broker
     time.sleep(MASTER_WAIT_INTERVAL)
@@ -274,6 +277,7 @@ def main():
 
     # Publish sensor data for other device's interactions
     topic = '%d/data_stream' % config['serial']
+    deviceName = getNode(config['serial'])['display_name']
     while True:
         if isSensor(config['serial']):
             # TODO: this should eventually be generalized / propagated through the
@@ -281,6 +285,8 @@ def main():
             data = {'data' : hardwareClient.pollValue(getHardwareName()),
                     'serial' : config['serial']}
             conn.publish(topic, json.dumps(data))
+            print('Device: \'%s\'\t\t Publishing data: \'%d\''
+                  % (deviceName, data['data']))
 
         time.sleep(DATA_PUB_INTERVAL)
 
